@@ -21,3 +21,9 @@ def test_goodbye(client):
     assert response.status_code == 200
     assert b"Goodbye" in response.data
     assert b"Server IP" in response.data
+
+def test_hello_mark(client):
+    response = client.get('/hello')
+    assert response.status_code == 200
+    assert b"Hello Mark!" in response.data
+
