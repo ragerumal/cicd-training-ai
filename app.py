@@ -10,6 +10,13 @@ def hello_world():
     return f"Hello World! Server IP: {ip_address}"
 
 
+@app.route('/greet/<name>')
+def greet_person(name):
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    return f"Hello, {name}! Server IP: {ip_address}"
+
+
 @app.route('/goodbye')
 def goodbye():
     hostname = socket.gethostname()
@@ -19,6 +26,7 @@ def goodbye():
 @app.route('/hello')
 def hello_mark():
     return "Hello Mark!"
+
 
 
 if __name__ == '__main__':

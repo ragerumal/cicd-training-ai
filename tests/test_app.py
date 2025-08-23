@@ -16,6 +16,14 @@ def test_hello_world(client):
     assert b"Hello World" in response.data
     assert b"Server IP" in response.data
 
+
+def test_greet_person(client):
+    test_name = "Larry"
+    response = client.get(f'/greet/{test_name}')
+    assert response.status_code == 200
+    assert f"Hello, {test_name}".encode() in response.data
+    assert b"Server IP" in response.data
+
 def test_goodbye(client):
     response = client.get('/goodbye')
     assert response.status_code == 200
@@ -26,4 +34,5 @@ def test_hello_mark(client):
     response = client.get('/hello')
     assert response.status_code == 200
     assert b"Hello Mark!" in response.data
+
 
