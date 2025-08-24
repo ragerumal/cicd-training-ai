@@ -1,11 +1,14 @@
-flask>=3.0.0
-pytest>=8.0.0
-python-dotenv>=1.0.0
+# Main application dependencies
+flask>=3.0.0  # Web framework
+werkzeug>=3.0.0  # WSGI utilities
+Jinja2>=3.0.0  # Template engine
+click>=8.0.0  # Command line interface
+MarkupSafe>=2.1.0  # String escaping
+itsdangerous>=2.1.0  # Data serialization
+blinker>=1.6.0  # Signals and events
 
-werkzeug>=3.0.0
-click>=8.0.0
-blinker>=1.6.0
-itsdangerous>=2.1.0
-Jinja2>=3.0.0
-MarkupSafe>=2.1.0
+# Testing dependencies
+pytest>=8.0.0  # Testing framework
 
+# Environment and configuration
+python-dotenv>=1.0.0  # Environment variable management
