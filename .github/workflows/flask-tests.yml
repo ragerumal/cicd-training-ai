@@ -1,4 +1,4 @@
-name: Flask Tests
+name: Flask Tests and Docker Build
 
 on:
   push:
@@ -11,7 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
@@ -21,30 +20,66 @@ jobs:
       with:
         fetch-depth: 1
 
-
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
+        cache-dependency-path: |
+          requirements.txt
 
     - name: Install dependencies
       run: |
-
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
 
-
-
-    - name: Run tests
-      id: test
+    - name: Run unit tests
+      id: unittest
       run: |
         pytest tests/ -v --color=yes
+
+    - name: Build Docker image
+      id: docker_build
+      run: |
+        docker build -t flask-app:test .
+        docker images
+
+    - name: Run Docker container
+      id: docker_run
+      run: |
+        docker run -d -p 5000:5000 --name flask-test flask-app:test
+        sleep 5  # Wait for container to start
+
+    - name: Test endpoints
+      id: test_endpoints
+      run: |
+        # Test root endpoint
+        ROOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/)
+        echo "Root endpoint status: $ROOT_STATUS"
+        if [ "$ROOT_STATUS" != "200" ]; then
+          echo "Root endpoint test failed"
+          exit 1
+        fi
+        
+        # Test greet endpoint
+        GREET_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/greet/test)
+        echo "Greet endpoint status: $GREET_STATUS"
+        if [ "$GREET_STATUS" != "200" ]; then
+          echo "Greet endpoint test failed"
+          exit 1
+        fi
+
+    - name: Cleanup Docker
+      if: always()
+      run: |
+        docker stop flask-test || true
+        docker rm flask-test || true
 
     - name: Auto-merge PR
       if: |
         github.event_name == 'pull_request' && 
-        steps.test.outcome == 'success' && 
+        steps.unittest.outcome == 'success' &&
+        steps.test_endpoints.outcome == 'success' &&
         github.event.pull_request.base.ref == 'main'
       uses: pascalgn/automerge-action@v0.15.6
       env:
@@ -52,6 +87,5 @@ jobs:
         MERGE_LABELS: ""
         MERGE_METHOD: "merge"
         MERGE_DELETE_BRANCH: "false"
-
-        MERGE_COMMIT_MESSAGE: "Auto-merge PR #{number} after successful tests 🎉"
+        MERGE_COMMIT_MESSAGE: "Auto-merge PR #{number} after successful tests and Docker validation ✨"
 
